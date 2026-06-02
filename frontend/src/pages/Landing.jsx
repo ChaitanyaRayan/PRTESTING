@@ -43,11 +43,11 @@ const DASHBOARDS = [
     delta: "+3 new",
     deltaPos: true,
     dateViz: [
-      { label: "27", month: "APR", count: 10 },
-      { label: "28", month: "APR", count: 5 },
-      { label: "29", month: "APR", count: 4 },
-      { label: "30", month: "APR", count: 3 },
-      { label: "1", month: "MAY", count: 13 },
+      { id: "apr27", label: "27", month: "APR", count: 10 },
+      { id: "apr28", label: "28", month: "APR", count: 5 },
+      { id: "apr29", label: "29", month: "APR", count: 4 },
+      { id: "apr30", label: "30", month: "APR", count: 3 },
+      { id: "may01", label: "1", month: "MAY", count: 13 },
     ],
   },
   {
@@ -126,6 +126,205 @@ function DashboardPreview({ dashboard }) {
   );
 }
 
+// ── Extracted sub-components for clarity & lower complexity ────────────────
+function LandingHeader({ dark, setDark }) {
+  return (
+    <div className="landing-top">
+      <div className="brand">
+        <div className="brand-mark" />
+        <span className="brand-name">AlphaMetricx</span>
+        <span style={{ color: "var(--text-3)", margin: "0 4px" }}>·</span>
+        <span style={{ color: "var(--text-2)" }}>InfoVision Intelligence</span>
+      </div>
+
+      <div className="top-actions">
+        <ThemePill dark={dark} setDark={setDark} />
+      </div>
+    </div>
+  );
+}
+
+function LandingFooter() {
+  return (
+    <div
+      style={{
+        marginTop: "48px",
+        padding: "16px 24px",
+        background: "var(--surface-2)",
+        borderRadius: "12px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "16px",
+        fontSize: "11px",
+        color: "var(--text-3)",
+        fontFamily: "JetBrains Mono, monospace",
+        letterSpacing: "0.05em",
+      }}
+    >
+      <span style={{ fontWeight: 600, color: "var(--text-2)" }}>
+        LAST SYNC · 2 MIN AGO
+      </span>
+      <span style={{ color: "var(--border-strong)" }}>|</span>
+      <span>
+        Sources: 38,420 outlets · 14 social platforms · 6 podcast networks
+      </span>
+    </div>
+  );
+}
+
+function DateVizColumn({ day, max, isLatest, tint }) {
+  return (
+    <div className="card-date-col">
+      <div className="card-date-bar-wrap">
+        <div
+          className="card-date-bar"
+          style={{
+            height: `${(day.count / max) * 100}%`,
+            background: isLatest
+              ? tint
+              : `color-mix(in oklab, ${tint} 35%, transparent)`,
+          }}
+        />
+      </div>
+      <div
+        className="card-date-day"
+        style={{ color: isLatest ? tint : undefined }}
+      >
+        {day.label}
+      </div>
+      <div className="card-date-month">{day.month}</div>
+    </div>
+  );
+}
+
+function CardPreview({ dashboard }) {
+  const { dateViz, imageSrc, previewChart, name, tint } = dashboard;
+
+  if (!dateViz && !imageSrc && !previewChart) return null;
+
+  const max = dateViz ? Math.max(...dateViz.map((x) => x.count)) : 0;
+  const lastDateId = dateViz ? dateViz[dateViz.length - 1].id : null;
+
+  return (
+    <div className="card-spark">
+      {dateViz &&
+        dateViz.map((day) => (
+          <DateVizColumn
+            key={day.id}
+            day={day}
+            max={max}
+            isLatest={day.id === lastDateId}
+            tint={tint}
+          />
+        ))}
+      {imageSrc && (
+        <img
+          src={imageSrc}
+          alt={`${name} preview`}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            borderRadius: "8px",
+          }}
+        />
+      )}
+      {previewChart && <DashboardPreview dashboard={dashboard} />}
+    </div>
+  );
+}
+
+function CardFooter({ statV, statL, delta, deltaPos }) {
+  return (
+    <div className="footer">
+      <div>
+        <div className="stat-v">{statV}</div>
+        {delta && (
+          <div
+            className={`delta-pill ${deltaPos ? "pos" : "neg"}`}
+            style={{ marginTop: "6px" }}
+          >
+            {deltaPos ? "↑" : "↓"} {delta}
+          </div>
+        )}
+        <div className="stat-l">{statL}</div>
+      </div>
+    </div>
+  );
+}
+
+function DashboardCard({ dashboard, onOpen }) {
+  const { id, num, name, tint, Icon, spark, sparkColor } = dashboard;
+
+  return (
+    <button
+      className="dash-card"
+      onClick={() => onOpen(id)}
+      style={{ "--card-tint": tint }}
+      data-num={num}
+      data-testid={`dashboard-card-${id}`}
+    >
+      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+        {Icon && (
+          <div className="glyph">
+            <Icon size={16} />
+          </div>
+        )}
+        <div className="num">{num}</div>
+      </div>
+
+      <h3>{name}</h3>
+
+      <CardPreview dashboard={dashboard} />
+
+      {spark && (
+        <div className="card-spark">
+          <Sparkline
+            data={spark}
+            color={sparkColor}
+            height={56}
+            strokeWidth={2.5}
+          />
+        </div>
+      )}
+
+      <CardFooter
+        statV={dashboard.statV}
+        statL={dashboard.statL}
+        delta={dashboard.delta}
+        deltaPos={dashboard.deltaPos}
+      />
+    </button>
+  );
+}
+
+function LandingHero({ onOpen }) {
+  return (
+    <div className="landing-hero">
+      <div className="eyebrow">Premium B2B SaaS Intelligence</div>
+
+      <h1 className="hero-title">
+        Media Intelligence for your <span className="grad">Brand</span>.
+      </h1>
+
+      <p className="hero-sub">
+        A unified workspace for media, narrative and reputation intelligence.
+        Pick a dashboard to dive in — every signal stays in sync across all
+        five.
+      </p>
+
+      <div className="cards">
+        {DASHBOARDS.map((d) => (
+          <DashboardCard key={d.id} dashboard={d} onOpen={onOpen} />
+        ))}
+      </div>
+
+      <LandingFooter />
+    </div>
+  );
+}
+
 export default function Landing({ onOpen, dark, setDark, layout }) {
   const [openUploadPopup, setOpenUploadPopup] = useState(false);
 
@@ -138,152 +337,8 @@ export default function Landing({ onOpen, dark, setDark, layout }) {
       />
 
       <div className="landing">
-        <div className="landing-top">
-          <div className="brand">
-            <div className="brand-mark" />
-            <span className="brand-name">AlphaMetricx</span>
-            <span style={{ color: "var(--text-3)", margin: "0 4px" }}>·</span>
-            <span style={{ color: "var(--text-2)" }}>InfoVision Intelligence</span>
-          </div>
-
-          <div className="top-actions">
-            <ThemePill dark={dark} setDark={setDark} />
-          </div>
-        </div>
-
-        <div className="landing-hero">
-          <div className="eyebrow">Premium B2B SaaS Intelligence</div>
-
-          <h1 className="hero-title">
-            Media Intelligence for your <span className="grad">Brand</span>.
-          </h1>
-
-          <p className="hero-sub">
-            A unified workspace for media, narrative and reputation intelligence.
-            Pick a dashboard to dive in — every signal stays in sync across all
-            five.
-          </p>
-
-          <div className="cards">
-            {DASHBOARDS.map((d) => (
-              <button
-                key={d.id}
-                className="dash-card"
-                onClick={() => onOpen(d.id)}
-                style={{ "--card-tint": d.tint }}
-                data-num={d.num}
-                data-testid={`dashboard-card-${d.id}`}
-              >
-                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                  {d.Icon && (
-                    <div className="glyph">
-                      <d.Icon size={16} />
-                    </div>
-                  )}
-                  <div className="num">{d.num}</div>
-                </div>
-
-                <h3>{d.name}</h3>
-
-                {(d.dateViz || d.imageSrc || d.previewChart) && (
-                  <div className="card-spark">
-                    {d.dateViz &&
-                      d.dateViz.map((day, i) => {
-                        const max = Math.max(...d.dateViz.map((x) => x.count));
-                        const isLatest = i === d.dateViz.length - 1;
-                        return (
-                          <div key={i} className="card-date-col">
-                            <div className="card-date-bar-wrap">
-                              <div
-                                className="card-date-bar"
-                                style={{
-                                  height: `${(day.count / max) * 100}%`,
-                                  background: isLatest
-                                    ? d.tint
-                                    : `color-mix(in oklab, ${d.tint} 35%, transparent)`,
-                                }}
-                              />
-                            </div>
-                            <div
-                              className="card-date-day"
-                              style={{ color: isLatest ? d.tint : undefined }}
-                            >
-                              {day.label}
-                            </div>
-                            <div className="card-date-month">{day.month}</div>
-                          </div>
-                        );
-                      })}
-                    {d.imageSrc && (
-                      <img
-                        src={d.imageSrc}
-                        alt={`${d.name} preview`}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                          borderRadius: "8px",
-                        }}
-                      />
-                    )}
-                    {d.previewChart && <DashboardPreview dashboard={d} />}
-                  </div>
-                )}
-
-                {d.spark && (
-                  <div className="card-spark">
-                    <Sparkline
-                      data={d.spark}
-                      color={d.sparkColor}
-                      height={56}
-                      strokeWidth={2.5}
-                    />
-                  </div>
-                )}
-
-                <div className="footer">
-                  <div>
-                    <div className="stat-v">{d.statV}</div>
-                    {d.delta && (
-                      <div
-                        className={`delta-pill ${d.deltaPos ? "pos" : "neg"}`}
-                        style={{ marginTop: "6px" }}
-                      >
-                        {d.deltaPos ? "↑" : "↓"} {d.delta}
-                      </div>
-                    )}
-                    <div className="stat-l">{d.statL}</div>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-
-          <div
-            style={{
-              marginTop: "48px",
-              padding: "16px 24px",
-              background: "var(--surface-2)",
-              borderRadius: "12px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "16px",
-              fontSize: "11px",
-              color: "var(--text-3)",
-              fontFamily: "JetBrains Mono, monospace",
-              letterSpacing: "0.05em",
-            }}
-          >
-            <span style={{ fontWeight: 600, color: "var(--text-2)" }}>
-              LAST SYNC · 2 MIN AGO
-            </span>
-            <span style={{ color: "var(--border-strong)" }}>|</span>
-            <span>
-              Sources: 38,420 outlets · 14 social platforms · 6 podcast networks
-            </span>
-          </div>
-        </div>
+        <LandingHeader dark={dark} setDark={setDark} />
+        <LandingHero onOpen={onOpen} />
       </div>
     </>
   );
