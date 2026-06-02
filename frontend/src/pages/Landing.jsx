@@ -1,30 +1,44 @@
-import { Icons } from "../components/Icons.jsx";
-import ThemePill from "../components/ui/ThemePill.jsx";
-import UploadModal from "../components/ui/UploadModal.jsx";
-import { Sparkline, PrImpactGauge } from "../components/charts/index.jsx";
-import { MM_SPARK_TOTAL } from "../data/media-monitoring-data.js";
 import { useState } from "react";
-import MediaMonitor from "../assets/images/media-monitoring.jpg";
+import {
+  Activity,
+  BarChart3,
+  Eye,
+  Layers,
+  Zap,
+  Star,
+  ArrowUpRight,
+} from "lucide-react";
+import ThemePill from "../components/ui/ThemePill.jsx";
+import { Sparkline, PrImpactGauge } from "../components/charts/index.jsx";
+import { MM_SPARK_TOTAL } from "../data/mock-data.js";
 
 const DASHBOARDS = [
   {
     id: "monitoring",
     num: "02",
     name: "Media Monitoring",
+    desc: "Track every mention across earned, owned and social media in real time.",
     tint: "#FF6B6B",
-    Icon: Icons.Chart,
-    imageSrc: MediaMonitor,
+    Icon: Activity,
     statV: "92.7",
     statL: "Impact index",
     delta: "+4.1 pts",
     deltaPos: true,
+    dateViz: [
+      { id: "apr27", label: "27", month: "APR", count: 6 },
+      { id: "apr28", label: "28", month: "APR", count: 5 },
+      { id: "apr29", label: "29", month: "APR", count: 4 },
+      { id: "apr30", label: "30", month: "APR", count: 6 },
+      { id: "may01", label: "1", month: "MAY", count: 14 },
+    ],
   },
   {
     id: "intelligence",
     num: "01",
     name: "Media Measurement",
+    desc: "Quantify reach, sentiment-weighted impact and message pull-through.",
     tint: "#5B6CF9",
-    Icon: Icons.Eye,
+    Icon: Eye,
     statV: "35",
     statL: "Total Articles",
     delta: "+12.3%",
@@ -36,8 +50,9 @@ const DASHBOARDS = [
     id: "narrative",
     num: "03",
     name: "Narrative Intelligence",
+    desc: "Map dominant story arcs, emerging themes and competitive counter-narratives.",
     tint: "#00C9A7",
-    Icon: Icons.Layers,
+    Icon: Layers,
     statV: "17",
     statL: "Active narratives",
     delta: "+3 new",
@@ -54,8 +69,9 @@ const DASHBOARDS = [
     id: "pr",
     num: "04",
     name: "PR Impact",
+    desc: "Measure earned media value, tier-weighted reach and campaign effectiveness.",
     tint: "#FFB800",
-    Icon: Icons.Zap,
+    Icon: Zap,
     statV: "$4.2M",
     statL: "EMV this month",
     delta: "−2.1%",
@@ -66,67 +82,18 @@ const DASHBOARDS = [
     id: "reputation",
     num: "05",
     name: "Reputation Index",
+    desc: "Composite reputation score across trust, value, advocacy and brand pillars.",
     tint: "#A855F7",
-    Icon: Icons.Star,
+    Icon: Star,
     statV: "78.4",
     statL: "Reputation score",
     delta: "+1.2",
     deltaPos: true,
-    previewChart: { type: "dummyGauge", value: 78, label: "Reputation pulse" },
+    previewChart: { type: "prGauge", value: 78 },
   },
 ];
 
-function DummyGaugePreview({ value = 0, label = "Index" }) {
-  const normalized = Math.max(0, Math.min(100, Number(value) || 0));
-  const radius = 38;
-  const circumference = Math.PI * radius;
-  const dash = (normalized / 100) * circumference;
-
-  return (
-    <div className="dummy-gauge-preview">
-      <svg width="120" height="80" viewBox="0 0 120 80">
-        <path
-          className="dummy-gauge-track"
-          d={`M 20 60 A 40 40 0 0 1 100 60`}
-          fill="none"
-        />
-        <path
-          className="dummy-gauge-fill"
-          d={`M 20 60 A 40 40 0 0 1 100 60`}
-          fill="none"
-          strokeDasharray={`${dash} ${circumference}`}
-        />
-        <circle className="dummy-gauge-hub" cx="60" cy="60" r="5" />
-      </svg>
-      <div className="dummy-gauge-label">{label}</div>
-    </div>
-  );
-}
-
-function DashboardPreview({ dashboard }) {
-  if (!dashboard.previewChart) return null;
-
-  if (dashboard.previewChart.type === "prGauge") {
-    return (
-      <div className="card-chart-preview">
-        <PrImpactGauge
-          value={dashboard.previewChart.value}
-          size={108}
-          color={dashboard.tint}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <DummyGaugePreview
-      value={dashboard.previewChart.value}
-      label={dashboard.previewChart.label}
-    />
-  );
-}
-
-// ── Extracted sub-components for clarity & lower complexity ────────────────
+// ── Extracted sub-components ──────────────────────────────────────────
 function LandingHeader({ dark, setDark }) {
   return (
     <div className="landing-top">
@@ -136,7 +103,6 @@ function LandingHeader({ dark, setDark }) {
         <span style={{ color: "var(--text-3)", margin: "0 4px" }}>·</span>
         <span style={{ color: "var(--text-2)" }}>InfoVision Intelligence</span>
       </div>
-
       <div className="top-actions">
         <ThemePill dark={dark} setDark={setDark} />
       </div>
@@ -146,29 +112,10 @@ function LandingHeader({ dark, setDark }) {
 
 function LandingFooter() {
   return (
-    <div
-      style={{
-        marginTop: "48px",
-        padding: "16px 24px",
-        background: "var(--surface-2)",
-        borderRadius: "12px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "16px",
-        fontSize: "11px",
-        color: "var(--text-3)",
-        fontFamily: "JetBrains Mono, monospace",
-        letterSpacing: "0.05em",
-      }}
-    >
-      <span style={{ fontWeight: 600, color: "var(--text-2)" }}>
-        LAST SYNC · 2 MIN AGO
-      </span>
-      <span style={{ color: "var(--border-strong)" }}>|</span>
-      <span>
-        Sources: 38,420 outlets · 14 social platforms · 6 podcast networks
-      </span>
+    <div className="landing-footer">
+      <span className="landing-footer-strong">LAST SYNC · 2 MIN AGO</span>
+      <span className="landing-footer-sep">|</span>
+      <span>Sources: 38,420 outlets · 14 social platforms · 6 podcast networks</span>
     </div>
   );
 }
@@ -183,14 +130,11 @@ function DateVizColumn({ day, max, isLatest, tint }) {
             height: `${(day.count / max) * 100}%`,
             background: isLatest
               ? tint
-              : `color-mix(in oklab, ${tint} 35%, transparent)`,
+              : `${tint}55`,
           }}
         />
       </div>
-      <div
-        className="card-date-day"
-        style={{ color: isLatest ? tint : undefined }}
-      >
+      <div className="card-date-day" style={{ color: isLatest ? tint : undefined }}>
         {day.label}
       </div>
       <div className="card-date-month">{day.month}</div>
@@ -199,9 +143,8 @@ function DateVizColumn({ day, max, isLatest, tint }) {
 }
 
 function CardPreview({ dashboard }) {
-  const { dateViz, imageSrc, previewChart, name, tint } = dashboard;
-
-  if (!dateViz && !imageSrc && !previewChart) return null;
+  const { dateViz, previewChart, tint } = dashboard;
+  if (!dateViz && !previewChart) return null;
 
   const max = dateViz ? Math.max(...dateViz.map((x) => x.count)) : 0;
   const lastDateId = dateViz ? dateViz[dateViz.length - 1].id : null;
@@ -218,19 +161,11 @@ function CardPreview({ dashboard }) {
             tint={tint}
           />
         ))}
-      {imageSrc && (
-        <img
-          src={imageSrc}
-          alt={`${name} preview`}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            borderRadius: "8px",
-          }}
-        />
+      {previewChart && previewChart.type === "prGauge" && (
+        <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
+          <PrImpactGauge value={previewChart.value} size={108} color={tint} />
+        </div>
       )}
-      {previewChart && <DashboardPreview dashboard={dashboard} />}
     </div>
   );
 }
@@ -241,51 +176,46 @@ function CardFooter({ statV, statL, delta, deltaPos }) {
       <div>
         <div className="stat-v">{statV}</div>
         {delta && (
-          <div
-            className={`delta-pill ${deltaPos ? "pos" : "neg"}`}
-            style={{ marginTop: "6px" }}
-          >
+          <div className={`delta-pill ${deltaPos ? "pos" : "neg"}`}>
             {deltaPos ? "↑" : "↓"} {delta}
           </div>
         )}
         <div className="stat-l">{statL}</div>
+      </div>
+      <div className="arrow" aria-hidden>
+        <ArrowUpRight size={18} />
       </div>
     </div>
   );
 }
 
 function DashboardCard({ dashboard, onOpen }) {
-  const { id, num, name, tint, Icon, spark, sparkColor } = dashboard;
+  const { id, num, name, desc, tint, Icon, spark, sparkColor } = dashboard;
 
   return (
     <button
+      type="button"
       className="dash-card"
       onClick={() => onOpen(id)}
       style={{ "--card-tint": tint }}
       data-num={num}
       data-testid={`dashboard-card-${id}`}
     >
-      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-        {Icon && (
-          <div className="glyph">
-            <Icon size={16} />
-          </div>
-        )}
+      <div className="dash-card-top">
+        <div className="glyph">
+          <Icon size={16} />
+        </div>
         <div className="num">{num}</div>
       </div>
 
       <h3>{name}</h3>
+      <p>{desc}</p>
 
       <CardPreview dashboard={dashboard} />
 
       {spark && (
         <div className="card-spark">
-          <Sparkline
-            data={spark}
-            color={sparkColor}
-            height={56}
-            strokeWidth={2.5}
-          />
+          <Sparkline data={spark} color={sparkColor} height={56} strokeWidth={2.5} />
         </div>
       )}
 
@@ -305,13 +235,14 @@ function LandingHero({ onOpen }) {
       <div className="eyebrow">Premium B2B SaaS Intelligence</div>
 
       <h1 className="hero-title">
-        Media Intelligence for your <span className="grad">Brand</span>.
+        Media Intelligence
+        <br />
+        for your <span className="grad">Brand</span>.
       </h1>
 
       <p className="hero-sub">
         A unified workspace for media, narrative and reputation intelligence.
-        Pick a dashboard to dive in — every signal stays in sync across all
-        five.
+        Pick a dashboard to dive in — every signal stays in sync across all five.
       </p>
 
       <div className="cards">
@@ -325,21 +256,11 @@ function LandingHero({ onOpen }) {
   );
 }
 
-export default function Landing({ onOpen, dark, setDark, layout }) {
-  const [openUploadPopup, setOpenUploadPopup] = useState(false);
-
+export default function Landing({ onOpen, dark, setDark }) {
   return (
-    <>
-      <UploadModal
-        open={openUploadPopup}
-        onClose={() => setOpenUploadPopup(false)}
-        onOpen={onOpen}
-      />
-
-      <div className="landing">
-        <LandingHeader dark={dark} setDark={setDark} />
-        <LandingHero onOpen={onOpen} />
-      </div>
-    </>
+    <div className="landing">
+      <LandingHeader dark={dark} setDark={setDark} />
+      <LandingHero onOpen={onOpen} />
+    </div>
   );
 }
